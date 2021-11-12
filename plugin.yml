@@ -1,0 +1,14 @@
+name: batch-steps
+description: Batch Steps with additional arguments.
+author: https://github.com/tobig77
+requirements:
+  - docker
+configuration:
+  properties:
+    batch_size: integer
+    step-template:
+      type: string
+    selection-template:
+      type: string
+    step-var-names:
+      type: [string, array]

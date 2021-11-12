@@ -1,0 +1,17 @@
+version: 3
+services:
+  lint:
+    image: buildkite/plugin-linter
+    command: ['--id', 'cultureamp/batch-steps']
+    volumes:
+      - ".:/plugin:ro"
+
+  tests:
+    build: .
+    volumes:
+      - ".:/plugin:ro"
+
+  tests:
+    image: buildkite/plugin-tester
+    volumes:
+      - ".:/plugin"
