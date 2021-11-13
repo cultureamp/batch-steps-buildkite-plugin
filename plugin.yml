@@ -5,10 +5,11 @@ requirements:
   - docker
 configuration:
   properties:
-    batch_size: string
+    batch-size:
+      type: integer
     step-template:
       type: string
-    selection-template:
+    variable-file:
       type: string
-    step-var-names:
+    variable-name:
       type: [string, array]

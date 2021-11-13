@@ -18,6 +18,7 @@ steps:
           step-template: deploy-steps.yml
           batch-size: 8
           variable-file: selection-template.yml
+          variable-name: REPLACE_THIS
 
 ```
 
