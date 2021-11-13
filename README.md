@@ -16,7 +16,23 @@ steps:
   - plugins:
       - cultureamp/batch-steps#v0.1.0:
           step-template: deploy-steps.yml
-          batch_size: 8
-          selection-template: selection-template.yml
+          batch-size: 8
+          variable-file: selection-template.yml
 
+```
+
+## Developing
+
+**Before** opening a pull request, run the tests. You may have to update the tests depending on your proposed change(s).
+
+To run the tests:
+
+```shell
+docker-compose run --rm tests
+```
+
+You'll also want to run the linter:
+
+```shell
+docker-compose run --rm lint
 ```

@@ -5,7 +5,7 @@ requirements:
   - docker
 configuration:
   properties:
-    batch_size: integer
+    batch_size: string
     step-template:
       type: string
     selection-template:

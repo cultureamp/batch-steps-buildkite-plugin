@@ -1,5 +1,82 @@
 #!/bin/bash
 
+[[ "${DEBUG:-}" == true ]] && set -x
+
 set -euo pipefail
 
-DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+function upload_deploy_steps() {
+  BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
+
+echo "steps:
+
+$STEPS_TO_INJECT
+
+  - wait: ~
+    $BATCH_WAIT_KEY
+
+" | buildkite-agent pipeline upload
+}
+
+function render_batch_steps() {
+
+  local variable_list=()
+  while read -r variable ; do
+    variable="${variable//[!0-9a-zA-Z ]/}"
+    variable="${variable//[ ]/-}"
+    [ -z "$variable" ] || variable_list+=("$variable")
+  done <  <(sort -u "$VARIABLE_FILE")
+
+  VARIABLE_INDEX=0
+  UPLOAD_COUNTER=$BATCH_SIZE
+  STEPS_TO_INJECT=""
+  BATCH_WAIT_INDEX=1
+
+  for STEP_VARIABLE in "${variable_list[@]}" ; do
+    VARIABLE_INDEX=$((VARIABLE_INDEX+1))
+    UPLOAD_COUNTER=$((UPLOAD_COUNTER-1))
+    BATCH_WAIT_DEPENDS_ON=""
+    [ "$BATCH_WAIT_INDEX" == "1" ] || BATCH_WAIT_DEPENDS_ON="- deploy-batch-$((BATCH_WAIT_INDEX-1))"
+    export BATCH_WAIT_DEPENDS_ON STEP_VARIABLE VARIABLE_INDEX
+    STEPS_TO_INJECT="$STEPS_TO_INJECT $( envsubst < "$STEP_TEMPLATE")"
+    if [ "$UPLOAD_COUNTER" == "0" ]
+    then
+      [ -z "$STEPS_TO_INJECT" ] || {
+        upload_deploy_steps
+        UPLOAD_COUNTER=$BATCH_SIZE
+        BATCH_WAIT_INDEX=$((BATCH_WAIT_INDEX+1))
+        STEPS_TO_INJECT=""
+      }
+    fi
+  done
+
+  [ -z "$STEPS_TO_INJECT" ] || upload_deploy_steps
+
+}
+
+function batch_step_buildkite_plugin() {
+
+  [ -n "$(which envsubst )" ] || { echo "This plugin requires envsubst" ; exit 1;}
+
+  # VALIDATION START
+  STEP_TEMPLATE=${BUILDKITE_PLUGIN_BATCH_STEPS_STEP_TEMPLATE:-}
+  BATCH_SIZE=${BUILDKITE_PLUGIN_BATCH_STEPS_BATCH_SIZE:-8}
+  VARIABLE_FILE=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_FILE:-}
+
+  [ -n "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE MUST BE DEFINED!" ; exit 1; }
+  [ -e "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE FILE NOT FOUND!" ; exit 1 ; }
+
+  [ -n "${VARIABLE_FILE:-}" ] || { echo "VARIABLE_FILE MUST BE DEFINED!" ; exit 1; }
+  [ -e "${VARIABLE_FILE:-}" ] || { echo "VARIABLE_FILE FILE NOT FOUND!" ; exit 1 ; }
+
+  echo "STEP_TEMPLATE     : $STEP_TEMPLATE"
+  echo "BATCH_SIZE        : $BATCH_SIZE"
+  echo "VARIABLE_FILE   : $VARIABLE_FILE"
+
+  echo "CURRENT FOLDER    : $PWD"
+  # VALIDATION END
+
+  render_batch_steps
+
+}
+
+batch_step_buildkite_plugin
