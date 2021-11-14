@@ -35,7 +35,7 @@ function render_batch_steps() {
     VARIABLE_INDEX=$((VARIABLE_INDEX+1))
     UPLOAD_COUNTER=$((UPLOAD_COUNTER-1))
     BATCH_WAIT_DEPENDS_ON=""
-    [ "$BATCH_WAIT_INDEX" == "1" ] || BATCH_WAIT_DEPENDS_ON="- deploy-batch-$((BATCH_WAIT_INDEX-1))"
+    [ "$BATCH_WAIT_INDEX" == "1" ] || BATCH_WAIT_DEPENDS_ON="- batch-$((BATCH_WAIT_INDEX-1))"
     eval "$VARIABLE_NAME"="$STEP_VARIABLE"
     #shellcheck disable=SC2163
     export BATCH_WAIT_DEPENDS_ON VARIABLE_INDEX "$VARIABLE_NAME"
