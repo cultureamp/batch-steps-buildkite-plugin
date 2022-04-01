@@ -7,7 +7,7 @@ set -euo pipefail
 function upload_deploy_steps() {
   BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
   INJECT_BODY="steps:
-$STEPS_TO_INJECT
+  $STEPS_TO_INJECT
 "
 
   if [ "$WAIT_FOR_BATCH" == "true" ] ; then
