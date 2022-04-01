@@ -6,20 +6,23 @@ set -euo pipefail
 
 function upload_deploy_steps() {
   BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
+  BATCH_WAIT_BODY=""
+  if [ "$WAIT_FOR_BATCH" == "true" ] ; then
+BATCH_WAIT_BODY="   - wait: ~
+    $BATCH_WAIT_KEY
+"
+fi
 
-  INJECT_BODY="steps:
+cat << EoF |
+
+steps:
 
 $STEPS_TO_INJECT
 
-"
-  if [ "$WAIT_FOR_BATCH" == "true" ] ; then
-    INJECT_BODY="$INJECT_BODY
-  - wait: ~
-    $BATCH_WAIT_KEY
-"
-  fi ||:
+$BATCH_WAIT_BODY
+EoF
+buildkite-agent pipeline upload
 
-  echo $INJECT_BODY | buildkite-agent pipeline upload
 }
 
 function render_batch_steps() {
