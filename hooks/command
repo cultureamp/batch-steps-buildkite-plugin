@@ -6,15 +6,13 @@ set -euo pipefail
 
 function upload_deploy_steps() {
   BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
+  INJECT_BODY="steps:\n$STEPS_TO_INJECT\n"
 
-echo "steps:
+  if [ "$WAIT_FOR_BATCH" == "true" ] ; then
+    INJECT_BODY="$INJECT_BODY\n  - wait: ~\n$BATCH_WAIT_KEY\n"
+  fi ||:
 
-$STEPS_TO_INJECT
-
-  - wait: ~
-    $BATCH_WAIT_KEY
-
-" | buildkite-agent pipeline upload
+  echo -e $INJECT_BODY | buildkite-agent pipeline upload
 }
 
 function render_batch_steps() {
@@ -64,6 +62,7 @@ function batch_step_buildkite_plugin() {
   BATCH_SIZE=${BUILDKITE_PLUGIN_BATCH_STEPS_BATCH_SIZE:-8}
   VARIABLE_FILE=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_FILE:-}
   VARIABLE_NAME=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_NAME:-}
+  WAIT_FOR_BATCH=${BUILDKITE_PLUGIN_BATCH_STEPS_WAIT_FOR_BATCH:-true}
 
   [ -n "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE MUST BE DEFINED!" ; exit 1; }
   [ -e "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE FILE NOT FOUND!" ; exit 1 ; }
@@ -73,7 +72,8 @@ function batch_step_buildkite_plugin() {
 
   echo "STEP_TEMPLATE     : $STEP_TEMPLATE"
   echo "BATCH_SIZE        : $BATCH_SIZE"
-  echo "VARIABLE_FILE   : $VARIABLE_FILE"
+  echo "VARIABLE_FILE     : $VARIABLE_FILE"
+  echo "WAIT_FOR_BATCH    : $WAIT_FOR_BATCH"
 
   echo "CURRENT FOLDER    : $PWD"
   # VALIDATION END
@@ -82,4 +82,4 @@ function batch_step_buildkite_plugin() {
 
 }
 
-batch_step_buildkite_plugin
+[ "${BUILDKITE:-}" == "true" ] && batch_step_buildkite_plugin ||:

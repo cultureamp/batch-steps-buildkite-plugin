@@ -11,5 +11,7 @@ configuration:
       type: string
     variable-file:
       type: string
+    wait-for-batch:
+      type: boolean
     variable-name:
       type: [string, array]
