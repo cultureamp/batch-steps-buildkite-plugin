@@ -6,10 +6,15 @@ set -euo pipefail
 
 function upload_deploy_steps() {
   BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
-  INJECT_BODY="steps:\n$STEPS_TO_INJECT\n"
+  INJECT_BODY="steps:
+$STEPS_TO_INJECT
+"
 
   if [ "$WAIT_FOR_BATCH" == "true" ] ; then
-    INJECT_BODY="$INJECT_BODY\n  - wait: ~\n$BATCH_WAIT_KEY\n"
+    INJECT_BODY="$INJECT_BODY
+  - wait: ~
+    $BATCH_WAIT_KEY
+"
   fi ||:
 
   echo -e $INJECT_BODY | buildkite-agent pipeline upload
