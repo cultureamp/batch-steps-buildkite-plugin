@@ -11,7 +11,7 @@ function upload_deploy_steps() {
 BATCH_WAIT_BODY="   - wait: ~
     $BATCH_WAIT_KEY
 "
-fi
+fi ||:
 
 cat << EoF |
 
