@@ -19,9 +19,26 @@ cat > "$_step_body" <<EoF
 ${STEPS_TO_INJECT}
 EoF
 
+if [ "$GROUP_STEPS" = "true" ] ; then
+GROUP_HEADER="
+"
+sed -i 's/^/  /' "$_step_body"
+
+sed -i "1 i\
+steps:
+  - group: $VARIABLE_NAME
+" "$_step_body"
+  INDENTATION="  "
+else
+sed -i "1 i\
+steps:
+" "$_step_body"
+  INDENTATION=""
+fi
+
 if [ "$WAIT_FOR_BATCH" = "true" ] ; then
-echo "   - wait: ~" >> "$_step_body"
-echo "     key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
+echo "$INDENTATION  - wait: ~" >> "$_step_body"
+echo "$INDENTATION    key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
 fi ||:
 
 echo ">>> _step_body start"
