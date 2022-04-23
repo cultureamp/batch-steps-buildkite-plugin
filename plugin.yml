@@ -13,5 +13,7 @@ configuration:
       type: string
     wait-for-batch:
       type: boolean
+    indentation-level:
+      type: integer
     variable-name:
       type: [string, array]
