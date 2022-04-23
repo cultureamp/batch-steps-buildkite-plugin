@@ -24,30 +24,28 @@ function upload_deploy_steps() {
 if [ "$GROUP_STEPS" = "true" ] ; then
 
 cat > "$_step_doc" <<EoF
-steps:
-  - group: $VARIABLE_NAME
+- group: $VARIABLE_NAME
 EoF
-INDENTATION="  "
 else
-
-cat > "$_step_doc" <<EoF
-steps:
-EoF
-INDENTATION=""
+# make sure the doc is empty
+:> "$_step_doc"
 fi
 
-cat > "$_step_body" <<EoF
+cat >> "$_step_doc" <<EoF
 ${STEPS_TO_INJECT}
 EoF
 
-cat "$_step_body" | sed "s|^|$INDENTATION|g" >> "$step_doc"
+if [ "$WAIT_FOR_BATCH" = "true" ] ; then
+  echo "  - wait: ~" >> "$_step_body"
+  echo "    key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
+fi ||:
 
 echo ">>> _step_doc start"
 cat "$_step_doc"
 echo "<<< _step_doc end"
 
 sync
-buildkite-agent pipeline upload < "$_step_body"
+buildkite-agent pipeline upload < "$_step_doc"
 
 }
 
