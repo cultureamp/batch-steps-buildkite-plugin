@@ -25,6 +25,7 @@ if [ "$GROUP_STEPS" = "true" ] ; then
 
 cat > "$_step_doc" <<EoF
 - group: $VARIABLE_NAME
+  steps:
 EoF
 else
 # make sure the doc is empty
