@@ -4,39 +4,39 @@
 
 set -euo pipefail
 
+debug_step_body() {
+  exitcode=$?
+  echo ">>> _step_body start"
+  cat "$_step_body"
+  echo "<<< _step_body end"
+  rm -f $_step_body
+  exit $exitcode
+}
+
 function upload_deploy_steps() {
-  BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
-  BATCH_WAIT_BODY=""
-  if [ "$WAIT_FOR_BATCH" = "true" ] ; then
-BATCH_WAIT_BODY="   - wait: ~
-    $BATCH_WAIT_KEY
-"
+
+cat > "$_step_body" <<EoF
+${STEPS_TO_INJECT}
+EoF
+
+if [ "$WAIT_FOR_BATCH" = "true" ] ; then
+echo "   - wait: ~" >> "$_step_body"
+echo "     key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
 fi ||:
 
-if [ "$GROUP_STEPS" = "true" ] ; then
-GROUP_HEADER="\
-- group: $VARIABLE_NAME\
-"
-INDENTATION="  "
-else
-INDENTATION=""
-GROUP_HEADER=""
-fi
+echo ">>> _step_body start"
+cat "$_step_body"
+echo "<<< _step_body end"
 
-cat << EoF |
-
-$GROUP_HEADER
-${INDENTATION}steps:
-
-${INDENTATION}${STEPS_TO_INJECT}
-${INDENTATION}${BATCH_WAIT_BODY}
-EoF
-tee | buildkite-agent pipeline upload
+sync
+buildkite-agent pipeline upload < "$_step_body"
 
 }
 
 function render_batch_steps() {
 
+  _step_body="$(mktemp)"
+  trap debug_step_body INT EXIT TERM ERR
   local variable_list=()
   while read -r variable ; do
     variable="${variable//[!0-9a-zA-Z ]/}"
