@@ -31,7 +31,7 @@ ${INDENTATION}steps:
 ${INDENTATION}${STEPS_TO_INJECT}
 ${INDENTATION}${BATCH_WAIT_BODY}
 EoF
-buildkite-agent pipeline upload
+tee | buildkite-agent pipeline upload
 
 }
 
