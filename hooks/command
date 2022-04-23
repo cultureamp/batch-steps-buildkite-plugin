@@ -24,8 +24,8 @@ ${STEPS_TO_INJECT}
 EoF
 
 if [ "$WAIT_FOR_BATCH" = "true" ] ; then
-  echo "$INDENTATION_SPACER- wait: ~" >> "$_step_body"
-  echo "$INDENTATION_SPACER  key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
+  echo "${INDENTATION_SPACER}- wait: ~" >> "$_step_body"
+  echo "${INDENTATION_SPACER}  key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
 fi ||:
 
 echo ">>> _step_doc start"
@@ -92,7 +92,7 @@ function batch_step_buildkite_plugin() {
   INDENTATION_LEVEL=${BUILDKITE_PLUGIN_BATCH_STEPS_INDENTATION_LEVEL:-4}
 
   INDENTATION_SPACER=""
-  for _i in $(seq 1 $INDENTATION_LEVEL) ; do INDENTATION_SPACER="$INDENTATION_SPACER " ; done
+  for _i in $(seq 1 $INDENTATION_LEVEL) ; do INDENTATION_SPACER="${INDENTATION_SPACER} " ; done
   [ -n "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE MUST BE DEFINED!" ; exit 1; }
   [ -e "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE FILE NOT FOUND!" ; exit 1 ; }
 
