@@ -4,46 +4,47 @@
 
 set -euo pipefail
 
-debug_step_body() {
+cleanup_on_exit() {
   exitcode=$?
-  echo ">>> _step_body start"
-  cat "$_step_body"
-  echo "<<< _step_body end"
-  rm -f $_step_body
+  debug_step_doc
+  rm -f "$_step_body" "$_step_doc"
   exit $exitcode
 }
 
+debug_step_doc() {
+  echo ">>> _step_doc start"
+  cat "$_step_doc"
+  echo "<<< _step_doc end"
+}
+
 function upload_deploy_steps() {
+
+# if steps are to be grouped
+# we need to indent by 2 spaces
+if [ "$GROUP_STEPS" = "true" ] ; then
+
+cat > "$_step_doc" <<EoF
+steps:
+  - group: $VARIABLE_NAME
+EoF
+INDENTATION="  "
+else
+
+cat > "$_step_doc" <<EoF
+steps:
+EoF
+INDENTATION=""
+fi
 
 cat > "$_step_body" <<EoF
 ${STEPS_TO_INJECT}
 EoF
 
-if [ "$GROUP_STEPS" = "true" ] ; then
-GROUP_HEADER="
-"
-sed -i 's/^/  /' "$_step_body"
+cat "$_step_body" | sed "s|^|$INDENTATION|g" >> "$step_doc"
 
-sed -i "1 i\
-steps:
-  - group: $VARIABLE_NAME
-" "$_step_body"
-  INDENTATION="  "
-else
-sed -i "1 i\
-steps:
-" "$_step_body"
-  INDENTATION=""
-fi
-
-if [ "$WAIT_FOR_BATCH" = "true" ] ; then
-echo "$INDENTATION  - wait: ~" >> "$_step_body"
-echo "$INDENTATION    key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
-fi ||:
-
-echo ">>> _step_body start"
-cat "$_step_body"
-echo "<<< _step_body end"
+echo ">>> _step_doc start"
+cat "$_step_doc"
+echo "<<< _step_doc end"
 
 sync
 buildkite-agent pipeline upload < "$_step_body"
@@ -52,8 +53,10 @@ buildkite-agent pipeline upload < "$_step_body"
 
 function render_batch_steps() {
 
+  _step_doc="$(mktemp)"
   _step_body="$(mktemp)"
-  trap debug_step_body INT EXIT TERM ERR
+
+  trap cleanup_on_exit INT EXIT TERM ERR
   local variable_list=()
   while read -r variable ; do
     variable="${variable//[!0-9a-zA-Z ]/}"
