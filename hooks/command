@@ -7,7 +7,7 @@ set -euo pipefail
 cleanup_on_exit() {
   exitcode=$?
   debug_step_doc
-  rm -f "$_step_body" "$_step_doc"
+  rm -f "$_step_doc"
   exit $exitcode
 }
 
@@ -19,13 +19,14 @@ debug_step_doc() {
 
 function upload_deploy_steps() {
 
-cat >> "$_step_doc" <<EoF
+cat > "$_step_doc" <<EoF
 ${STEPS_TO_INJECT}
+
 EoF
 
 if [ "$WAIT_FOR_BATCH" = "true" ] ; then
-  echo "${INDENTATION_SPACER}- wait: ~" >> "$_step_body"
-  echo "${INDENTATION_SPACER}  key: batch-$BATCH_WAIT_INDEX" >> "$_step_body"
+  echo "${INDENTATION_SPACER}- wait: ~" >> "$_step_doc"
+  echo "${INDENTATION_SPACER}  key: batch-$BATCH_WAIT_INDEX" >> "$_step_doc"
 fi ||:
 
 echo ">>> _step_doc start"
@@ -40,7 +41,6 @@ buildkite-agent pipeline upload < "$_step_doc"
 function render_batch_steps() {
 
   _step_doc="$(mktemp)"
-  _step_body="$(mktemp)"
 
   trap cleanup_on_exit INT EXIT TERM ERR
   local variable_list=()
