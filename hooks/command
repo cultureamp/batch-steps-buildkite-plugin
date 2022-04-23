@@ -63,7 +63,9 @@ function render_batch_steps() {
     eval "$VARIABLE_NAME"="$STEP_VARIABLE"
     #shellcheck disable=SC2163
     export BATCH_WAIT_DEPENDS_ON VARIABLE_INDEX "$VARIABLE_NAME"
+    STEPS_TO_INJECT="${STEPS_TO_INJECT}\n"
     STEPS_TO_INJECT="${STEPS_TO_INJECT}$( envsubst < "$STEP_TEMPLATE")"
+    STEPS_TO_INJECT="${STEPS_TO_INJECT}\n"
     if [ "$UPLOAD_COUNTER" == "0" ]
     then
       [ -z "$STEPS_TO_INJECT" ] || {
