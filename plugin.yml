@@ -7,6 +7,10 @@ configuration:
   properties:
     batch-size:
       type: integer
+    group-name:
+      type: string
+    group-label:
+      type: string
     step-template:
       type: string
     variable-file:

@@ -7,14 +7,26 @@ set -euo pipefail
 function upload_deploy_steps() {
   BATCH_WAIT_KEY="key: batch-$BATCH_WAIT_INDEX"
   BATCH_WAIT_BODY=""
-  if [ "$WAIT_FOR_BATCH" == "true" ] ; then
+  if [ "$WAIT_FOR_BATCH" = "true" ] ; then
 BATCH_WAIT_BODY="   - wait: ~
     $BATCH_WAIT_KEY
 "
 fi ||:
 
+if [ -n "$GROUP_NAME" ] ; then
+  GROUP_HEADER="\
+group: $GROUP_NAME\
+"
+fi ||:
+if [ -n "$GROUP_LABEL" ] ; then
+  GROUP_HEADER="\
+label: $GROUP_LABEL\
+"
+fi ||:
+
 cat << EoF |
 
+$GROUP_HEADER
 steps:
 
 $STEPS_TO_INJECT
@@ -73,12 +85,16 @@ function batch_step_buildkite_plugin() {
   VARIABLE_FILE=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_FILE:-}
   VARIABLE_NAME=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_NAME:-}
   WAIT_FOR_BATCH=${BUILDKITE_PLUGIN_BATCH_STEPS_WAIT_FOR_BATCH:-true}
+  GROUP_NAME=${BUILDKITE_PLUGIN_BATCH_STEPS_GROUP_NAME:-}
+  GROUP_LABEL=${BUILDKITE_PLUGIN_BATCH_STEPS_GROUP_LABEL:-}
 
   [ -n "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE MUST BE DEFINED!" ; exit 1; }
   [ -e "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE FILE NOT FOUND!" ; exit 1 ; }
 
   [ -n "${VARIABLE_FILE:-}" ] || { echo "VARIABLE_FILE MUST BE DEFINED!" ; exit 1; }
   [ -e "${VARIABLE_FILE:-}" ] || { echo "VARIABLE_FILE FILE NOT FOUND!" ; exit 1 ; }
+
+  [ -n "${GROUP_LABEL:-}" ] && [ -z "${GROUP_NAME:-}" ] && { echo "If GROUP_LABEL is set, so must GROUP_NAME" ; exit 1;}
 
   echo "STEP_TEMPLATE     : $STEP_TEMPLATE"
   echo "BATCH_SIZE        : $BATCH_SIZE"
