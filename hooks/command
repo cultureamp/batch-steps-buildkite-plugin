@@ -19,19 +19,6 @@ debug_step_doc() {
 
 function upload_deploy_steps() {
 
-# if steps are to be grouped
-# we need to indent by 2 spaces
-if [ "$GROUP_STEPS" = "true" ] ; then
-
-cat > "$_step_doc" <<EoF
-- group: $STEP_VARIABLE
-  steps:
-EoF
-else
-# make sure the doc is empty
-:> "$_step_doc"
-fi
-
 cat >> "$_step_doc" <<EoF
 ${STEPS_TO_INJECT}
 EoF
@@ -102,7 +89,6 @@ function batch_step_buildkite_plugin() {
   VARIABLE_FILE=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_FILE:-}
   VARIABLE_NAME=${BUILDKITE_PLUGIN_BATCH_STEPS_VARIABLE_NAME:-}
   WAIT_FOR_BATCH=${BUILDKITE_PLUGIN_BATCH_STEPS_WAIT_FOR_BATCH:-true}
-  GROUP_STEPS=${BUILDKITE_PLUGIN_BATCH_STEPS_GROUP_STEPS:-true}
 
   [ -n "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE MUST BE DEFINED!" ; exit 1; }
   [ -e "${STEP_TEMPLATE:-}" ] || { echo "STEP_TEMPLATE FILE NOT FOUND!" ; exit 1 ; }

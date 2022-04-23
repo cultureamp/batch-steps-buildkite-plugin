@@ -7,8 +7,6 @@ configuration:
   properties:
     batch-size:
       type: integer
-    group-steos:
-      type: boolean
     step-template:
       type: string
     variable-file:
