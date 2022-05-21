@@ -45,8 +45,8 @@ function render_batch_steps() {
   trap cleanup_on_exit INT EXIT TERM ERR
   local variable_list=()
   while read -r variable ; do
-    variable="${variable//[!0-9a-zA-Z ]/}"
-    variable="${variable//[ ]/-}"
+    # variable="${variable//[!0-9a-zA-Z ]/}"
+    # variable="${variable//[ ]/-}"
     [ -z "$variable" ] || variable_list+=("$variable")
   done <  <(sort -u "$VARIABLE_FILE")
 
